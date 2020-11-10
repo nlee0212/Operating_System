@@ -1,34 +1,41 @@
-# 1.	개발 목표
+1.	개발 목표
 user program이 실행되기까지의 일련의 과정을 이해하여 pintos 상에서 해당 user program을 올바르게 실행시키는 것이 이번 프로젝트의 목표이다.
 
-# 2.	개발 범위 및 내용
-A.	개발 범위
-1.	Argument Passing
-원래 구현되어 있는 형식은 들어온 filename, 즉 command와 argument가 합쳐진 문자열이 바로 실행할 파일 이름으로 설정되어 있었다. 따라서 command 부분과 argument 부분을 분리하여 command의 이름으로 된 실행할 파일이 있는지 확인하는 코드를 구현하였다.
-in <userprog/process.c>
-makeup_stack(): 들어온 command와 argument들을 핀토스 매뉴얼 에서와 같은 방식으로 stack에 쌓았다.
-load(): 위에서 언급한 대로 command 실행 파일을 open한다. 문제 없이 open이 완료되었다면 filename을 위와 command와 argument 부분으로 분리하여 위 makeup_stack()함수를 호출하여 스택에 쌓았다. 
-2.	User Memory Access
-가장 중요한 점은 user memory space와 kernel memory space가 달랐다는 점이다. 따라서 user program이 kernel space를 침범하는 경우 프로그램을 종료 시켰다. check_userr_vaddr()를 새로 구현하였다.
-in <userprog/syscall.c>
-syscall_handler(): 각 시스템 콜 함수를 호출하기 전, 먼저 command와 argument들이 저장되어 있는 stack 내의 argument 주소들이 user space 내에 있는지를 다 확인하여 준다.
-in <userprog/exception.c>
-page_fault(): user변수나 접근한 주소가 kernel 주소라면 status -1을 넘겨주면서 exit()을 하게 하였다.
-3.	System Calls
-user program에서 사용하는 system call함수들이 정상적으로 동작할 수 있게끔 하였다.
-in <userprog/syscall.c>
-syscall_handler(): 위에서 메모리 영역이 정상적으로 user memory space안에 있는 것을 확인하였다면, system call type에 해당하는 system call 함수를 불러오는 함수를 호출하였다.
-exit(), wait() 등 system call 이름으로 된 함수들: system call 함수를 실행할 수 있는 조건이 있다면 확인해보고 system call 함수들을 call하여 해당 함수의 역할을 다 수행할 수 있게끔 한다.
-fibonacci(), max_of_four_int(): 추가적인 함수가 해당 역할을 수행하게끔 구현하였다.
-in <lib/user/syscall.c>
-syscall4(): argument가 4개인 system call을 받기 위한 함수
-fibonacci(), max_of_four_int(): uerprog에서 작성한 함수가 잘 call될 수 있도록 한다.
-in <lib/syscall-nr.h>
-각 system call함수에 대한 syscall number를 설정하는 곳. Fibonacci()와 max_of_four_int()를 위한 syscall number도 지정해 주게끔 하였다.
-in <threads/thread.h>
-struct thread: thread struct를 수정하여 필요한 추가적인 변수들 (exit_status, semaphore 등) 역시 추가로 정보를 저장할 수 있게끔 하였다. userprog내에서 필요하기 때문에 #ifdef USERPROG 내에서 추가적인 변수를 저장하였다.
-in <threads/thread.c>
-init_thread(): 부모 쓰레드는 자식 쓰레드의 존재, status 등을 알고 있어야 하기 때문에 부모와 자식을 연결해주는 내용을 구현하였다.
+2.	개발 범위 및 내용
+ A.	개발 범위
+  1.	Argument Passing
+  원래 구현되어 있는 형식은 들어온 filename, 즉 command와 argument가 합쳐진 문자열이 바로 실행할 파일 이름으로 설정되어 있었다. 따라서 command 부분과 argument 부분을 분리하여 command의 이름으로 된 실행할 파일이 있는지 확인하는 코드를 구현하였다.
+  
+  in <userprog/process.c>
+  makeup_stack(): 들어온 command와 argument들을 핀토스 매뉴얼 에서와 같은 방식으로 stack에 쌓았다.
+  load(): 위에서 언급한 대로 command 실행 파일을 open한다. 문제 없이 open이 완료되었다면 filename을 위와 command와 argument 부분으로 분리하여 위 makeup_stack()함수를 호출하여 스택에 쌓았다. 
+  
+  2.	User Memory Access
+  가장 중요한 점은 user memory space와 kernel memory space가 달랐다는 점이다. 따라서 user program이 kernel space를 침범하는 경우 프로그램을 종료 시켰다. check_userr_vaddr()를 새로 구현하였다.
+  in <userprog/syscall.c>
+  syscall_handler(): 각 시스템 콜 함수를 호출하기 전, 먼저 command와 argument들이 저장되어 있는 stack 내의 argument 주소들이 user space 내에 있는지를 다 확인하여 준다.
+  in <userprog/exception.c>
+  page_fault(): user변수나 접근한 주소가 kernel 주소라면 status -1을 넘겨주면서 exit()을 하게 하였다.
+  
+  3.	System Calls
+  user program에서 사용하는 system call함수들이 정상적으로 동작할 수 있게끔 하였다.
+  
+  in <userprog/syscall.c>
+  syscall_handler(): 위에서 메모리 영역이 정상적으로 user memory space안에 있는 것을 확인하였다면, system call type에 해당하는 system call 함수를 불러오는 함수를 호출하였다.
+  exit(), wait() 등 system call 이름으로 된 함수들: system call 함수를 실행할 수 있는 조건이 있다면 확인해보고 system call 함수들을 call하여 해당 함수의 역할을 다 수행할 수 있게끔 한다.
+  fibonacci(), max_of_four_int(): 추가적인 함수가 해당 역할을 수행하게끔 구현하였다.
+  
+  in <lib/user/syscall.c>
+  syscall4(): argument가 4개인 system call을 받기 위한 함수
+  fibonacci(), max_of_four_int(): uerprog에서 작성한 함수가 잘 call될 수 있도록 한다.
+
+  in <lib/syscall-nr.h>
+  각 system call함수에 대한 syscall number를 설정하는 곳. Fibonacci()와 max_of_four_int()를 위한 syscall number도 지정해 주게끔 하였다.
+  in <threads/thread.h>
+  struct thread: thread struct를 수정하여 필요한 추가적인 변수들 (exit_status, semaphore 등) 역시 추가로 정보를 저장할 수 있게끔 하였다. userprog내에서 필요하기 때문에 #ifdef USERPROG 내에서 추가적인 변수를 저장하였다.
+  
+  in <threads/thread.c>
+  init_thread(): 부모 쓰레드는 자식 쓰레드의 존재, status 등을 알고 있어야 하기 때문에 부모와 자식을 연결해주는 내용을 구현하였다.
 
 B.	개발 내용
 -	Argument Passing
