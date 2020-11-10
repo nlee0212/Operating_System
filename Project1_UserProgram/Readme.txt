@@ -1,7 +1,7 @@
-1.	개발 목표
+# 1.	개발 목표
 user program이 실행되기까지의 일련의 과정을 이해하여 pintos 상에서 해당 user program을 올바르게 실행시키는 것이 이번 프로젝트의 목표이다.
 
-2.	개발 범위 및 내용
+# 2.	개발 범위 및 내용
 A.	개발 범위
 1.	Argument Passing
 원래 구현되어 있는 형식은 들어온 filename, 즉 command와 argument가 합쳐진 문자열이 바로 실행할 파일 이름으로 설정되어 있었다. 따라서 command 부분과 argument 부분을 분리하여 command의 이름으로 된 실행할 파일이 있는지 확인하는 코드를 구현하였다.
