@@ -140,6 +140,7 @@ void
 thread_tick (void) 
 {
   struct thread *t = thread_current ();
+  int64_t curr_t = timer_ticks();
 
   /* Update statistics. */
   if (t == idle_thread)
@@ -154,6 +155,70 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
+
+  /* Wake up blocked thread, if any thread need to be. */
+  if (curr_t >= wakeup_tick) {
+      do {
+          /* Get blocked thread which has lowest tick in
+             sleep_list. */
+          struct list_elem* e = list_front(&sleep_list);
+          struct thread* cur = list_entry(e, struct thread, elem);
+
+          /* Loop must be stopped when lowest tick in sleep_list
+             if greater then current tick. */
+          if (cur->tick > wakeup_tick) break;
+
+          /* Remove from sleep list and add to ready queue. */
+          list_pop_front(&sleep_list);
+          thread_unblock(cur);
+
+          /* Loop must be stopped when list is empty. */
+      } while (!list_empty(&sleep_list));
+
+      /* Update wakeup_tick. */
+      wakeup_tick = list_empty(&sleep_list) ? INT64_MAX :
+          list_entry(list_front(&sleep_list), struct thread, elem)->tick;
+  }
+
+#ifndef USERPROG
+  if (thread_prior_aging == true)
+      thread_aging();
+#endif
+
+  if (thread_mlfqs) {
+      enum intr_level old_level;
+      old_level = intr_disable();
+
+      /* If current thread is not idle thread, running
+         thread's recent_cpu is incremented by 1. */
+      t->recent_cpu += (1 & (t != idle_thread)) * FP;
+
+      /* Every second, update every thread's recent_cpu
+         and load_avg. */
+      if (timer_ticks() % TIMER_FREQ == 0) {
+          fixpoint upd;
+
+          /* Update load_avg. */
+          load_avg = 59 * load_avg +
+              (list_size(&ready_list) + (thread_current() != idle_thread)) * FP;
+          load_avg = load_avg / 60;
+
+          /* Calculate (2*load_avg)/(2*load_avg+1) part to
+             avoid executing same operation over threads. */
+          upd = ((int64_t)(2 * load_avg) * FP / (2 * load_avg + 1 * FP));
+
+          /* Update thread's recent_cpu. */
+          thread_foreach(recent_cpu_update, (void*)&upd);
+      }
+
+      /* Every four ticks, update every thread's priority. */
+      if (timer_ticks() % TIME_SLICE == 0) {
+          thread_foreach(priority_update, NULL);
+          list_sort(&ready_list, priority_comp, NULL);
+      }
+
+      intr_set_level(old_level);
+  }
 }
 
 /* Prints thread statistics. */
