@@ -631,7 +631,7 @@ void thread_wake_up(void) {
     for (e = list_begin(&sleep_list); e != list_end(&sleep_list); ) {
         t = list_entry(e, struct thread, elem);
 
-        if (t->wakeup_tick <= thread_ticks) {
+        if (t->wakeup_tick <= ticks) {
             e = list_remove(e);
             thread_unblock(t);
         }
