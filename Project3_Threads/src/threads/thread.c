@@ -148,7 +148,7 @@ thread_tick (void)
   thread_wake_up();
 
   /* Project 3 */
-  if (thread_priority_aging == true)
+  if (thread_prior_aging == true)
       thread_aging();
 #endif
 }
