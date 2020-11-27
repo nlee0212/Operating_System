@@ -280,6 +280,10 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
+  /* Set thread's niceness and recent_cpu as parent's. */
+  t->nice = t->parent->nice;
+  t->recent_cpu = t->parent->recent_cpu;
+
   /* Add to run queue. */
   thread_unblock (t);
 
@@ -615,10 +619,9 @@ init_thread (struct thread *t, const char *name, int priority)
   //t->exit_status = t->parent->exit_status;
 #endif
 
-   /* Set thread's niceness and recent_cpu as parent's. */
-  t->nice = t->parent->nice;
-  t->recent_cpu = t->parent->recent_cpu;
-
+  
+  /* Initialize thread's niceness and recent_cpu. */
+  t->nice = t->recent_cpu = 0;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
