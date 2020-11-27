@@ -651,7 +651,7 @@ void thread_sleep(int64_t ticks) {
 
     old_level = intr_disable();
     cur->wakeup_tick = ticks;
-    list_push_back(&sleep_list, cur->elem);
+    list_push_back(&sleep_list, &cur->elem);
     thread_block();
     intr_set_level(old_level);
 }
