@@ -4,12 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
-#include "threads/synch.h" /* Project #3. */
-
-#ifndef USERPROG
-/* Project #3. */
-extern bool thread_prior_aging;
-#endif
+#include "synch.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -29,8 +24,7 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
-typedef int32_t fixpoint;
-#define FP (1 << 14)
+
 /* A kernel thread or user process.
 
    Each thread structure is stored in its own 4 kB page.  The
@@ -103,8 +97,6 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
-    
-#endif
     struct thread* parent;
     struct list_elem child_elem;
     struct list child;
@@ -114,15 +106,8 @@ struct thread
     struct semaphore load;
     struct semaphore wait;
     struct file* fd[128];
-    int64_t tick;                       /* Stores tick,
-                                            when thread needs to wake up. */
-    int nice;                           /* Stores niceness of this thread. */
-    fixpoint recent_cpu;                /* Stores amount of CPU time this
-                                           thread has recieved recently. */
-                                           /* Added for project 3. */
-    uint8_t* esp;						/* Store current stack pointer. */
-    //struct hash supPT;				    /* Supplemental page table. */
-
+#endif
+   
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
@@ -142,7 +127,6 @@ void thread_print_stats (void);
 typedef void thread_func (void *aux);
 tid_t thread_create (const char *name, int priority, thread_func *, void *);
 
-void thread_sleep(int64_t ticks);
 void thread_block (void);
 void thread_unblock (struct thread *);
 
@@ -164,14 +148,5 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-
-//added for Project 3
-bool priority_comp(const struct list_elem* a,
-    const struct list_elem* b, void* aux UNUSED);
-bool tick_comp(const struct list_elem* a,
-    const struct list_elem* b, void* aux UNUSED);
-void recent_cpu_update(struct thread* t, void* aux);
-void priority_update(struct thread* t, void* aux UNUSED);
-void thread_aging(void);
 
 #endif /* threads/thread.h */
