@@ -81,7 +81,7 @@ void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
 /* MY CODE */
-void thread_wake_up(void);
+void thread_wake_up(int64_t);
 void thread_aging(void);
 
 /* Initializes the threading system by transforming the code
@@ -624,7 +624,7 @@ allocate_tid (void)
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 /* MY CODE START */
-void thread_wake_up(void) {
+void thread_wake_up(int64_t ticks) {
     struct thread* t;
     struct list_elem* e;
 
