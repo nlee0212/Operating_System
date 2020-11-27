@@ -291,6 +291,33 @@ thread_create (const char *name, int priority,
   return tid;
 }
 
+/* Puts current thread to sleep, with alarm clock method.
+   Sets thread's tick as given tick, and push into sleep list,
+   then call thread_block(). */
+void
+thread_sleep(int64_t ticks)
+{
+    struct thread* cur;
+    enum intr_level old_level;
+
+    /* Turn off interrupts for calling thread_block(). */
+    old_level = intr_disable();
+
+    cur = thread_current();
+
+    /* Set tick for current thread. */
+    cur->tick = ticks;
+
+    /* Update wakeup_tick if given tick is smaller than this. */
+    wakeup_tick = wakeup_tick > ticks ? ticks : wakeup_tick;
+
+    /* Add to sleep queue. */
+    list_insert_ordered(&sleep_list, &cur->elem, tick_comp, NULL);
+    thread_block();
+
+    intr_set_level(old_level);
+}
+
 /* Puts the current thread to sleep.  It will not be scheduled
    again until awoken by thread_unblock().
 
