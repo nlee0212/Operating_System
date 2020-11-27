@@ -120,7 +120,7 @@ struct thread
                                            thread has recieved recently. */
                                            /* Added for project 3. */
     uint8_t* esp;						/* Store current stack pointer. */
-    struct hash supPT;				    /* Supplemental page table. */
+    //struct hash supPT;				    /* Supplemental page table. */
 
 
     /* Owned by thread.c. */
