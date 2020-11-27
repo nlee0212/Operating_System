@@ -93,9 +93,10 @@ timer_sleep (int64_t ticks)
 
   ASSERT (intr_get_level () == INTR_ON);
   /* Original code */
+  /*
   while (timer_elapsed (start) < ticks) 
     thread_yield ();
-
+    */
   /* MY CODE */
   // Alarm Clock implementation
   thread_sleep(start + ticks);
