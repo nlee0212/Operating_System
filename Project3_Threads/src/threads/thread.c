@@ -28,6 +28,10 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
+/* MY CODE */
+// List of threads that went to sleep
+static struct list sleep_list;
+
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -101,6 +105,7 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  list_init(&sleep_list);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -618,10 +623,22 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
+/* MY CODE */
 void thread_wake_up(void) {
 
 }
 
 void thread_aging(void) {
 
+}
+
+void thread_sleep(int64_t ticks) {
+    struct thread* cur = thread_current();
+    enum intr_level old_level;
+
+    old_level = intr_disable();
+    cur->wakeup_tick = ticks;
+    list_push_back(&sleep_list, cur->elem);
+    thread_block();
+    intr_set_level(old_level);
 }
