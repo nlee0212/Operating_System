@@ -103,6 +103,13 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&all_list);
 
+  /* MY CODE */
+  //Initializing wake up tick for alarm clock
+  wakeup_tick = INT64_MAX;
+
+  //Initializing load_avg for BSD scheduler
+  load_avg = 0;
+
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
   init_thread (initial_thread, "main", PRI_DEFAULT);
