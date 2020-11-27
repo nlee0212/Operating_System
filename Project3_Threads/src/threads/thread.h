@@ -6,6 +6,11 @@
 #include <stdint.h>
 #include "synch.h"
 
+#ifndef USERPROG
+//For Project 3
+extern bool thread_prior_aging;
+#endif
+
 /* States in a thread's life cycle. */
 enum thread_status
   {
