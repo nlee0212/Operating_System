@@ -154,7 +154,7 @@ thread_tick (void)
 
 #ifndef USERPROG
   /* Project 3 */
-  thread_wake_up();
+  //thread_wake_up();
 
   /* Project 3 */
   if (thread_prior_aging == true)
@@ -627,7 +627,7 @@ uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 void thread_wake_up(void) {
     struct thread* t;
     struct list_elem* e;
-    
+
     for (e = list_begin(&sleep_list); e != list_end(&sleep_list); ) {
         t = list_entry(e, struct thread, elem);
 
@@ -635,9 +635,9 @@ void thread_wake_up(void) {
             e = list_remove(e);
             thread_unblock(t);
         }
-        else 
+        else
             e = list_next(e);
-        
+
     }
 }
 
