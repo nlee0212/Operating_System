@@ -737,3 +737,66 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+/* For using list_insert_ordered(), this func returns
+   true if a's priority is greater than b's,
+   false if a's priority is equal or less than b's. */
+bool
+priority_comp(const struct list_elem* a,
+    const struct list_elem* b, void* aux UNUSED)
+{
+    return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
+}
+
+/* For using list_insert_ordered(), this func returns
+   true if a's tick is less than b's,
+   false if a's tick is equal or greater than b's. */
+bool
+tick_comp(const struct list_elem* a,
+    const struct list_elem* b, void* aux UNUSED)
+{
+    return list_entry(a, struct thread, elem)->tick < list_entry(b, struct thread, elem)->tick;
+}
+
+/* To update recent_cpu every second, calculate new
+   value and assign into thread's recent_cpu.
+   To use thread_foreach(), this func forms like this. */
+void
+recent_cpu_update(struct thread* t, void* aux)
+{
+    fixpoint upd = *(fixpoint*)aux;
+    t->recent_cpu = ((int64_t)upd * t->recent_cpu / FP)
+        + t->nice * FP;
+}
+
+/* To update priority on each four ticks, calculate new
+   value and assign into thread's recent_cpu.
+   To use thread_foreach(), this func forms like this. */
+void
+priority_update(struct thread* t, void* aux UNUSED)
+{
+    /* Stores current thread's recent cpu value
+       with nearest integer value. */
+    int recent_cpu_int = t->recent_cpu & (1 << 31) ?
+        (t->recent_cpu - FP / 2) / FP
+        : (t->recent_cpu + FP / 2) / FP;
+
+    int upd = PRI_MAX - recent_cpu_int / 4 - t->nice * 2;
+    t->priority = upd > PRI_MAX ? PRI_MAX : upd < PRI_MIN ? PRI_MIN : upd;
+}
+
+#ifndef USERPROG
+/* Implements thread aging.
+   For every threads in ready_list, increase priority. */
+void
+thread_aging(void)
+{
+    struct list_elem* e;
+    for (e = list_begin(&ready_list);
+        e != list_end(&ready_list); e = list_next(e))
+    {
+        struct thread* cur = list_entry(e, struct thread, elem);
+        if (cur->priority != PRI_MAX) cur->priority += 1;
+    }
+}
+#endif
