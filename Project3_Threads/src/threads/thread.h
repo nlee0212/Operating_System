@@ -103,6 +103,8 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
+    
+#endif
     struct thread* parent;
     struct list_elem child_elem;
     struct list child;
@@ -112,7 +114,6 @@ struct thread
     struct semaphore load;
     struct semaphore wait;
     struct file* fd[128];
-#endif
     int64_t tick;                       /* Stores tick,
                                             when thread needs to wake up. */
     int nice;                           /* Stores niceness of this thread. */
