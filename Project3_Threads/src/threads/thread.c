@@ -282,6 +282,12 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+
+  /* If current thread no longer has the highest
+     priority, yields. */
+  if (priority_comp(list_begin(&ready_list), &thread_current()->elem, NULL))
+      thread_yield();
+
   return tid;
 }
 
@@ -565,6 +571,10 @@ init_thread (struct thread *t, const char *name, int priority)
     t->fd[i] = NULL;
   //t->exit_status = t->parent->exit_status;
 #endif
+
+   /* Set thread's niceness and recent_cpu as parent's. */
+  t->nice = t->parent->nice;
+  t->recent_cpu = t->parent->recent_cpu;
 
 }
 
