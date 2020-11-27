@@ -55,6 +55,10 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 #define TIME_SLICE 4            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
+/* MY CODE */
+static int64_t wakeup_tick; /* Closest tick that some threads in sleep_list need to wake up. */
+static fixpoint load_avg; /* Stores avg. # of threads ready to run over the past minute. */
+
 #ifndef USERPROG
 /* Project #3. */
 bool thread_prior_aging;
