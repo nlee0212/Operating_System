@@ -81,8 +81,8 @@ void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
 /* MY CODE */
-void thread_wake_up();
-void thread_aging();
+void thread_wake_up(void);
+void thread_aging(void);
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -631,7 +631,7 @@ void thread_wake_up(void) {
     for (e = list_begin(&sleep_list); e != list_end(&sleep_list); ) {
         t = list_entry(e, struct thread, elem);
 
-        if (t->wakeup_time <= ticks) {
+        if (t->wakeup_tick <= thread_ticks) {
             e = list_remove(e);
             thread_unblock(t);
         }
