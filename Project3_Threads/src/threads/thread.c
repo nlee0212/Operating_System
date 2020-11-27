@@ -623,9 +623,22 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
-/* MY CODE */
+/* MY CODE START */
 void thread_wake_up(void) {
+    struct thread* t;
+    struct list_elem* e;
+    
+    for (e = list_begin(&sleep_list); e != list_end(&sleep_list); ) {
+        t = list_entry(e, struct thread, elem);
 
+        if (t->wakeup_time <= ticks) {
+            e = list_remove(e);
+            thread_unblock(t);
+        }
+        else 
+            e = list_next(e);
+        
+    }
 }
 
 void thread_aging(void) {
@@ -642,3 +655,5 @@ void thread_sleep(int64_t ticks) {
     thread_block();
     intr_set_level(old_level);
 }
+
+/* MY CODE END */
