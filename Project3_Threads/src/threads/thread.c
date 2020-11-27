@@ -471,31 +471,40 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED) 
 {
-  /* Not yet implemented. */
+    struct thread* cur = thread_current();
+
+    /* Update nice, then recalculate priority. */
+    cur->nice = nice;
+    priority_update(cur, NULL);
+
+    /* If current thread no longer has the highest
+       priority, yields. */
+    if (priority_comp(list_begin(&ready_list),
+        &thread_current()->elem, NULL))
+        thread_yield();
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+    return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+    fixpoint ret = load_avg * 100;
+    return ret & (1 << 31) ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+    fixpoint ret = thread_current()->recent_cpu * 100;
+    return ret & (1 << 31) ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
