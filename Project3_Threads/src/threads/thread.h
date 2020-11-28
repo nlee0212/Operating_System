@@ -173,5 +173,6 @@ int thread_get_load_avg (void);
 void thread_sleep(int64_t);
 bool compare_priority(const struct list_elem* a, const struct list_elem* b, void* aux UNUSED);
 void priority_update(struct thread* t, void* aux UNUSED);
+void recent_cpu_update(struct thread* t, void* aux);
 
 #endif /* threads/thread.h */

@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "devices/timer.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -699,7 +700,7 @@ void thread_aging(void) {
 
         /* If current thread is not idle thread, running
            thread's recent_cpu is incremented by 1. */
-        t->recent_cpu += (1 & (t != idle_thread)) * FP;
+        thread_current()->recent_cpu += (1 & (t != idle_thread)) * FP;
 
         /* Every second, update every thread's recent_cpu
            and load_avg. */
