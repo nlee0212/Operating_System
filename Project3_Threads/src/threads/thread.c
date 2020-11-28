@@ -694,39 +694,28 @@ void thread_aging(void) {
         if (cur->priority != PRI_MAX) cur->priority += 1;
     }
 
-    if (thread_mlfqs) {
-        enum intr_level old_level;
-        old_level = intr_disable();
+    thread_current()->recent_cpu += (1 & (thread_current() != idle_thread)) * FP;
 
-        /* If current thread is not idle thread, running
-           thread's recent_cpu is incremented by 1. */
-        thread_current()->recent_cpu += (1 & (t != idle_thread)) * FP;
+    if (timer_ticks() % TIMER_FREQ == 0) {
+        fixpoint upd;
 
-        /* Every second, update every thread's recent_cpu
-           and load_avg. */
-        if (timer_ticks() % TIMER_FREQ == 0) {
-            fixpoint upd;
+        /* Update load_avg. */
+        load_avg = 59 * load_avg +
+            (list_size(&ready_list) + (thread_current() != idle_thread)) * FP;
+        load_avg = load_avg / 60;
 
-            /* Update load_avg. */
-            load_avg = 59 * load_avg +
-                (list_size(&ready_list) + (thread_current() != idle_thread)) * FP;
-            load_avg = load_avg / 60;
+        /* Calculate (2*load_avg)/(2*load_avg+1) part to
+           avoid executing same operation over threads. */
+        upd = ((int64_t)(2 * load_avg) * FP / (2 * load_avg + 1 * FP));
 
-            /* Calculate (2*load_avg)/(2*load_avg+1) part to
-               avoid executing same operation over threads. */
-            upd = ((int64_t)(2 * load_avg) * FP / (2 * load_avg + 1 * FP));
+        /* Update thread's recent_cpu. */
+        thread_foreach(recent_cpu_update, (void*)&upd);
+    }
 
-            /* Update thread's recent_cpu. */
-            thread_foreach(recent_cpu_update, (void*)&upd);
-        }
-
-        /* Every four ticks, update every thread's priority. */
-        if (timer_ticks() % TIME_SLICE == 0) {
-            thread_foreach(priority_update, NULL);
-            list_sort(&ready_list, compare_priority, NULL);
-        }
-
-        intr_set_level(old_level);
+    /* Every four ticks, update every thread's priority. */
+    if (timer_ticks() % TIME_SLICE == 0) {
+        thread_foreach(priority_update, NULL);
+        list_sort(&ready_list, compare_priority, NULL);
     }
 }
 
