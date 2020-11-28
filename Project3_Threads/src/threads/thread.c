@@ -401,7 +401,7 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED) 
 {
-  /* Not yet implemented. */
+  /* MY CODE */
     struct thread* cur = thread_current();
 
     /* Update nice, then recalculate priority. */
@@ -418,7 +418,7 @@ thread_set_nice (int nice UNUSED)
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
+  /* MY CODE */
     return thread_current()->nice;
 }
 
@@ -426,16 +426,16 @@ thread_get_nice (void)
 int
 thread_get_load_avg (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+    fixpoint ret = load_avg * 100;
+    return ret & (1 << 31) ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+    fixpoint ret = thread_current()->recent_cpu * 100;
+    return ret & (1 << 31) ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
