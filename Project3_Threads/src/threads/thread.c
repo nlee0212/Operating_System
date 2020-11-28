@@ -402,6 +402,16 @@ void
 thread_set_nice (int nice UNUSED) 
 {
   /* Not yet implemented. */
+    struct thread* cur = thread_current();
+
+    /* Update nice, then recalculate priority. */
+    cur->nice = nice;
+    priority_update(cur, NULL);
+
+    /* If current thread no longer has the highest
+       priority, yields. */
+    if (compare_priority(list_begin(&ready_list), &cur->elem, NULL))
+        thread_yield();
 }
 
 /* Returns the current thread's nice value. */
@@ -409,7 +419,7 @@ int
 thread_get_nice (void) 
 {
   /* Not yet implemented. */
-  return 0;
+    return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
@@ -518,10 +528,13 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   old_level = intr_disable();
   list_push_back (&all_list, &t->allelem);
+
+  /* MY CODE */
+  t->recent_cpu = running_thread()->recent_cpu;
+  t->nice = running_thread()->nice;
+
   intr_set_level(old_level);
 
-
-  //list_init(&(t->child)); // child list  initialize
 #ifdef USERPROG
   t->parent = running_thread();
   sema_init(&(t->exit), 0);
@@ -533,7 +546,7 @@ init_thread (struct thread *t, const char *name, int priority)
   int i;
   for(i = 0; i < 128; i++)
     t->fd[i] = NULL;
-  //t->exit_status = t->parent->exit_status;
+ 
 #endif
 
 }
@@ -694,6 +707,22 @@ void thread_sleep(int64_t ticks) {
 
 bool compare_priority(const struct list_elem* a, const struct list_elem* b, void* aux UNUSED) {
     return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
+}
+
+/* To update priority on each four ticks, calculate new
+   value and assign into thread's recent_cpu.
+   To use thread_foreach(), this func forms like this. */
+void
+priority_update(struct thread* t, void* aux UNUSED)
+{
+    /* Stores current thread's recent cpu value
+       with nearest integer value. */
+    int recent_cpu_int = t->recent_cpu & (1 << 31) ?
+        (t->recent_cpu - FP / 2) / FP
+        : (t->recent_cpu + FP / 2) / FP;
+
+    int upd = PRI_MAX - recent_cpu_int / 4 - t->nice * 2;
+    t->priority = upd > PRI_MAX ? PRI_MAX : upd < PRI_MIN ? PRI_MIN : upd;
 }
 
 /* MY CODE END */
