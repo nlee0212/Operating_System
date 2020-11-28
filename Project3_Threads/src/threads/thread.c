@@ -692,6 +692,41 @@ void thread_aging(void) {
         cur = list_entry(e, struct thread, elem);
         if (cur->priority != PRI_MAX) cur->priority += 1;
     }
+
+    if (thread_mlfqs) {
+        enum intr_level old_level;
+        old_level = intr_disable();
+
+        /* If current thread is not idle thread, running
+           thread's recent_cpu is incremented by 1. */
+        t->recent_cpu += (1 & (t != idle_thread)) * FP;
+
+        /* Every second, update every thread's recent_cpu
+           and load_avg. */
+        if (timer_ticks() % TIMER_FREQ == 0) {
+            fixpoint upd;
+
+            /* Update load_avg. */
+            load_avg = 59 * load_avg +
+                (list_size(&ready_list) + (thread_current() != idle_thread)) * FP;
+            load_avg = load_avg / 60;
+
+            /* Calculate (2*load_avg)/(2*load_avg+1) part to
+               avoid executing same operation over threads. */
+            upd = ((int64_t)(2 * load_avg) * FP / (2 * load_avg + 1 * FP));
+
+            /* Update thread's recent_cpu. */
+            thread_foreach(recent_cpu_update, (void*)&upd);
+        }
+
+        /* Every four ticks, update every thread's priority. */
+        if (timer_ticks() % TIME_SLICE == 0) {
+            thread_foreach(priority_update, NULL);
+            list_sort(&ready_list, compare_priority, NULL);
+        }
+
+        intr_set_level(old_level);
+    }
 }
 
 void thread_sleep(int64_t ticks) {
@@ -723,6 +758,17 @@ priority_update(struct thread* t, void* aux UNUSED)
 
     int upd = PRI_MAX - recent_cpu_int / 4 - t->nice * 2;
     t->priority = upd > PRI_MAX ? PRI_MAX : upd < PRI_MIN ? PRI_MIN : upd;
+}
+
+/* To update recent_cpu every second, calculate new
+   value and assign into thread's recent_cpu.
+   To use thread_foreach(), this func forms like this. */
+void
+recent_cpu_update(struct thread* t, void* aux)
+{
+    fixpoint upd = *(fixpoint*)aux;
+    t->recent_cpu = ((int64_t)upd * t->recent_cpu / FP)
+        + t->nice * FP;
 }
 
 /* MY CODE END */
