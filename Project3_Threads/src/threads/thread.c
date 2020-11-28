@@ -691,7 +691,8 @@ void thread_aging(void) {
     for (e = list_begin(&ready_list); e != list_end(&ready_list); e = list_next(e))
     {
         cur = list_entry(e, struct thread, elem);
-        if (cur->priority != PRI_MAX) cur->priority += 1;
+        //if (cur->priority != PRI_MAX) 
+            cur->priority += 1;
     }
 
     thread_current()->recent_cpu += (1 & (thread_current() != idle_thread)) * FP;
