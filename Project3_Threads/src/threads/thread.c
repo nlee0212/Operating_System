@@ -83,7 +83,6 @@ static tid_t allocate_tid (void);
 /* MY CODE */
 void thread_wake_up(int64_t);
 void thread_aging(void);
-bool compare_priority(const struct list_elem* a, const struct list_elem* b, void* aux UNUSED);
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
