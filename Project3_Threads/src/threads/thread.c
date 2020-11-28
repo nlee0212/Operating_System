@@ -663,7 +663,14 @@ void thread_wake_up(int64_t ticks) {
 }
 
 void thread_aging(void) {
+    struct list_elem* e;
+    struct thread* cur;
 
+    for (e = list_begin(&ready_list); e != list_end(&ready_list); e = list_next(e))
+    {
+        cur = list_entry(e, struct thread, elem);
+        if (cur->priority != PRI_MAX) cur->priority += 1;
+    }
 }
 
 void thread_sleep(int64_t ticks) {
