@@ -104,8 +104,15 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
+    /* MY CODE */
     /* Stores tick, when thread needs to wake up */
     int64_t wakeup_tick;
+    
+    fixpoint recent_cpu;                /* Stores amount of CPU time this
+										   thread has recieved recently. */
+    int nice;                           /* Stores niceness of this thread. */
+    /* MY CODE END */
+    
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
