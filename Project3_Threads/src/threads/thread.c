@@ -166,7 +166,7 @@ thread_tick (void)
   //thread_wake_up();
 
   /* Project 3 */
-  if (thread_prior_aging == true)
+  if (thread_prior_aging || thread_mlfqs)
       thread_aging();
 #endif
 }
@@ -379,6 +379,10 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
+    //added this line
+    // if thread_mlfqs is true, do not run thread_set_priority
+    if (thread_mlfqs)
+        return;
 
     // never changed this line
     // we do not know if new priority is the highest
@@ -691,7 +695,8 @@ void thread_aging(void) {
     for (e = list_begin(&ready_list); e != list_end(&ready_list); e = list_next(e))
     {
         cur = list_entry(e, struct thread, elem);
-        //if (cur->priority != PRI_MAX) 
+        //printf("inside thread_aging!\n");
+        if (cur->priority != PRI_MAX) 
             cur->priority += 1;
     }
 
