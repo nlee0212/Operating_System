@@ -179,7 +179,10 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
+
+  /* MY CODE */
   thread_wake_up(ticks);
+
   thread_tick ();
 }
 
