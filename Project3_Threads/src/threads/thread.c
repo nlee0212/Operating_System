@@ -746,40 +746,34 @@ bool compare_priority(const struct list_elem* a, const struct list_elem* b, void
     to update priority every four ticks,. */
 void priority_update(struct thread* t, void* aux UNUSED)
 {
-    /* Stores current thread's recent cpu value
-       with nearest integer value. 
-    int recent_cpu_int = t->recent_cpu & (1 << 31) ?
-        (t->recent_cpu - FP / 2) / FP
-        : (t->recent_cpu + FP / 2) / FP;
-        */
-
     int recent_cpu_int, priority;
 
+    // calculate the nearest integer value of current thread's recent cpu value
+    // floating point arithmetic -> integer
     if (t->recent_cpu & (1 << 31))
         recent_cpu_int = (t->recent_cpu - FP / 2) / FP;
     else
         recent_cpu_int = (t->recent_cpu + FP / 2) / FP;
 
+    // priority = PRI_MAX  ?  (recent_cpu   /  4)  - (nice  *   2)
     priority = PRI_MAX - recent_cpu_int / 4 - t->nice * 2;
 
+    // Range of priority: 0 (PRI_MIN) - 63 (PRI_MAX)
+    // if out of range, make it fit
     if (priority > PRI_MAX)
         t->priority = PRI_MAX;
     else if (priority < PRI_MIN)
         t->priority = PRI_MIN;
     else
         t->priority = priority;
-    
-    //t->priority = priority > PRI_MAX ? PRI_MAX : priority < PRI_MIN ? PRI_MIN : priority;
 }
 
-/* To update recent_cpu every second, calculate new
-   value and assign into thread's recent_cpu.
-   To use thread_foreach(), this func forms like this. */
+/* calculate new value and assign into thread's recent_cpu 
+    to update recent_cpu every second */
 void recent_cpu_update(struct thread* t, void* aux)
 {
-    fixpoint upd = *(fixpoint*)aux;
-    t->recent_cpu = ((int64_t)upd * t->recent_cpu / FP)
-        + t->nice * FP;
+    fixpoint update = *(fixpoint*)aux;
+    t->recent_cpu = ((int64_t)update * t->recent_cpu / FP) + t->nice * FP;
 }
 
 /* MY CODE END */
