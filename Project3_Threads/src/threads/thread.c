@@ -700,8 +700,6 @@ void thread_aging(void) {
             cur->priority += 1;
     }
 
-    //thread_current()->recent_cpu += (1 & (thread_current() != idle_thread)) * FP;
-
     if (thread_current() != idle_thread)
         thread_current()->recent_cpu += FP;
 
@@ -709,9 +707,19 @@ void thread_aging(void) {
         fixpoint upd;
 
         /* Update load_avg. */
+        /*
         load_avg = 59 * load_avg +
             (list_size(&ready_list) + (thread_current() != idle_thread)) * FP;
         load_avg = load_avg / 60;
+        */
+
+        load_avg *= 59;
+        if (thread_current() != idle_thread)
+            load_avg += (list_size(&ready_list) + 1) * FP;
+        else
+            load_avg += (list_size(&ready_list))* FP;
+        load_avg = load_avg / 60;
+
 
         /* Calculate (2*load_avg)/(2*load_avg+1) part to
            avoid executing same operation over threads. */
