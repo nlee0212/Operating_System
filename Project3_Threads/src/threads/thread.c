@@ -700,7 +700,10 @@ void thread_aging(void) {
             cur->priority += 1;
     }
 
-    thread_current()->recent_cpu += (1 & (thread_current() != idle_thread)) * FP;
+    //thread_current()->recent_cpu += (1 & (thread_current() != idle_thread)) * FP;
+
+    if (thread_current() != idle_thread)
+        thread_current()->recent_cpu += FP;
 
     if (timer_ticks() % TIMER_FREQ == 0) {
         fixpoint upd;
