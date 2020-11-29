@@ -754,7 +754,7 @@ void priority_update(struct thread* t, void* aux UNUSED)
     else
         recent_cpu_int = (t->recent_cpu + FP / 2) / FP;
 
-    // priority = PRI_MAX  ?  (recent_cpu   /  4)  - (nice  *   2)
+    // priority = PRI_MAX  - (recent_cpu   /  4)  - (nice  *   2)
     priority = PRI_MAX - recent_cpu_int / 4 - t->nice * 2;
 
     // Range of priority: 0 (PRI_MIN) - 63 (PRI_MAX)
