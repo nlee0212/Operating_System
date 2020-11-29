@@ -742,27 +742,40 @@ bool compare_priority(const struct list_elem* a, const struct list_elem* b, void
     return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
 }
 
-/* To update priority on each four ticks, calculate new
-   value and assign into thread's recent_cpu.
-   To use thread_foreach(), this func forms like this. */
-void
-priority_update(struct thread* t, void* aux UNUSED)
+/*  calculate new value and assign into thread's recent_cpu 
+    to update priority every four ticks,. */
+void priority_update(struct thread* t, void* aux UNUSED)
 {
     /* Stores current thread's recent cpu value
-       with nearest integer value. */
+       with nearest integer value. 
     int recent_cpu_int = t->recent_cpu & (1 << 31) ?
         (t->recent_cpu - FP / 2) / FP
         : (t->recent_cpu + FP / 2) / FP;
+        */
 
-    int upd = PRI_MAX - recent_cpu_int / 4 - t->nice * 2;
-    t->priority = upd > PRI_MAX ? PRI_MAX : upd < PRI_MIN ? PRI_MIN : upd;
+    int recent_cpu_int, priority;
+
+    if (t->recent_cpu & (1 << 31))
+        recent_cpu_int = (t->recent_cpu - FP / 2) / FP;
+    else
+        recent_cpu_int = (t->recent_cpu + FP / 2) / FP;
+
+    priority = PRI_MAX - recent_cpu_int / 4 - t->nice * 2;
+
+    if (priority > PRI_MAX)
+        t->priority = PRI_MAX;
+    else if (priority < PRI_MIN)
+        t->priority = PRI_MIN;
+    else
+        t->priority = priority;
+    
+    //t->priority = priority > PRI_MAX ? PRI_MAX : priority < PRI_MIN ? PRI_MIN : priority;
 }
 
 /* To update recent_cpu every second, calculate new
    value and assign into thread's recent_cpu.
    To use thread_foreach(), this func forms like this. */
-void
-recent_cpu_update(struct thread* t, void* aux)
+void recent_cpu_update(struct thread* t, void* aux)
 {
     fixpoint upd = *(fixpoint*)aux;
     t->recent_cpu = ((int64_t)upd * t->recent_cpu / FP)
