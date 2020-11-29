@@ -703,16 +703,11 @@ void thread_aging(void) {
     if (thread_current() != idle_thread)
         thread_current()->recent_cpu += FP;
 
+    /* recent_cpu value of all thread is updated in every second (1sec = TIMER_FREQ) */
     if (timer_ticks() % TIMER_FREQ == 0) {
-        fixpoint upd;
+        fixpoint recent_cpu;
 
         /* Update load_avg. */
-        /*
-        load_avg = 59 * load_avg +
-            (list_size(&ready_list) + (thread_current() != idle_thread)) * FP;
-        load_avg = load_avg / 60;
-        */
-
         load_avg *= 59;
         if (thread_current() != idle_thread)
             load_avg += (list_size(&ready_list) + 1) * FP;
@@ -720,16 +715,12 @@ void thread_aging(void) {
             load_avg += (list_size(&ready_list))* FP;
         load_avg = load_avg / 60;
 
-
-        /* Calculate (2*load_avg)/(2*load_avg+1) part to
-           avoid executing same operation over threads. */
-        upd = ((int64_t)(2 * load_avg) * FP / (2 * load_avg + 1 * FP));
-
         /* Update thread's recent_cpu. */
-        thread_foreach(recent_cpu_update, (void*)&upd);
+        recent_cpu = ((int64_t)(2 * load_avg) * FP / (2 * load_avg + 1 * FP));
+        thread_foreach(recent_cpu_update, (void*)&recent_cpu);
     }
 
-    /* Every four ticks, update every thread's priority. */
+    /* recalculate every thread's priority every four ticks (== TIME_SLICE). */
     if (timer_ticks() % TIME_SLICE == 0) {
         thread_foreach(priority_update, NULL);
         list_sort(&ready_list, compare_priority, NULL);
