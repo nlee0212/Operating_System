@@ -233,7 +233,7 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
-  /* newly created thread's priority should be higher(lower score)
+  /* newly created thread's priority should be higher
      than currently running thread's priority 
      if priority bigger than running thread's priority, yield */
   /* MY CODE */
@@ -389,7 +389,7 @@ thread_set_priority (int new_priority)
 
     // added this line
     //currently running thread's priority would have been the highest one. 
-    // if new priority has lower value, which means higher priority, re-schedule
+    // if new priority has higher value, which means higher priority, re-schedule
     if (compare_priority(list_begin(&ready_list),&thread_current()->elem, NULL))
         thread_yield();
 }
