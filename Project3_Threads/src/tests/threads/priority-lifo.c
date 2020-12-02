@@ -66,6 +66,8 @@ test_priority_lifo (void)
   thread_set_priority (PRI_DEFAULT);
   /* All the other threads now run to termination here. */
   ASSERT (lock.holder == NULL);
+  //printf("RUN\n");
+  
 
   cnt = 0;
   for (; output < op; output++) 
@@ -80,6 +82,7 @@ test_priority_lifo (void)
       if (++cnt % THREAD_CNT == 0)
         printf ("\n");
       d->iterations++;
+      //printf("cnt: %d\n", cnt);
     }
 }
 
@@ -95,5 +98,6 @@ simple_thread_func (void *data_)
       *(*data->op)++ = data->id;
       lock_release (data->lock);
       thread_yield ();
+      //printf("op: %d\n", *(*data->op)-1);
     }
 }

@@ -354,6 +354,7 @@ thread_yield (void)
       //list_push_back (&ready_list, &cur->elem); -> original code
       /* MY CODE */
       list_insert_ordered(&ready_list, &cur->elem, compare_priority, NULL);
+  //printf("%d in %s\n", list_size(&ready_list), thread_current()->name);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
