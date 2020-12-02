@@ -86,6 +86,8 @@ void thread_wake_up(int64_t);
 void thread_aging(void);
 static fixpoint load_avg;
 
+#define SIGNBIT 1 << 31 /* Used for checking sign bit */
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -431,7 +433,7 @@ int
 thread_get_load_avg (void) 
 {
     fixpoint ret = load_avg * 100;
-    return ret & (1 << 31) ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
+    return ret & SIGNBIT ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -439,7 +441,7 @@ int
 thread_get_recent_cpu (void) 
 {
     fixpoint ret = thread_current()->recent_cpu * 100;
-    return ret & (1 << 31) ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
+    return ret & SIGNBIT ? ((ret - FP / 2) / FP) : ((ret + FP / 2) / FP);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -749,7 +751,7 @@ void priority_update(struct thread* t, void* aux UNUSED)
 
     // calculate the nearest integer value of current thread's recent cpu value
     // floating point arithmetic -> integer
-    if (t->recent_cpu & (1 << 31))
+    if (t->recent_cpu & SIGNBIT)
         recent_cpu_int = (t->recent_cpu - FP / 2) / FP;
     else
         recent_cpu_int = (t->recent_cpu + FP / 2) / FP;
