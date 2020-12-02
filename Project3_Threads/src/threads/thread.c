@@ -707,13 +707,18 @@ void thread_aging(void) {
     /* recent_cpu value of all thread is updated in every second (1sec = TIMER_FREQ) */
     if (timer_ticks() % TIMER_FREQ == 0) {
         fixpoint recent_cpu;
+        int ready_list_size = list_size(&ready_list);
+        int ready_threads = (thread_current() != idle_thread) ? ready_list_size + 1 : ready_list_size;
 
         /* Update load_avg. */
         load_avg *= 59;
+        /*
         if (thread_current() != idle_thread)
             load_avg += (list_size(&ready_list) + 1) * FP;
         else
             load_avg += (list_size(&ready_list))* FP;
+        */
+        load_avg += ready_threads * FP;
         load_avg = load_avg / 60;
 
         /* Update thread's recent_cpu. */
