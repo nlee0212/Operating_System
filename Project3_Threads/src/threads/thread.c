@@ -712,12 +712,6 @@ void thread_aging(void) {
 
         /* Update load_avg. */
         load_avg *= 59;
-        /*
-        if (thread_current() != idle_thread)
-            load_avg += (list_size(&ready_list) + 1) * FP;
-        else
-            load_avg += (list_size(&ready_list))* FP;
-        */
         load_avg += ready_threads * FP;
         load_avg = load_avg / 60;
 
