@@ -129,7 +129,7 @@ page_fault (struct intr_frame *f)
   bool user;         /* True: access by user, false: access by kernel. */
   void *fault_addr;  /* Fault address. */
   static void* location = PHYS_BASE - PGSIZE * 2;
-
+  void* p;
   /* Obtain faulting address, the virtual address that was
      accessed to cause the fault.  It may point to code or to
      data.  It is not necessarily the address of the instruction
@@ -150,33 +150,36 @@ page_fault (struct intr_frame *f)
   not_present = (f->error_code & PF_P) == 0;
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
-  if(!user||is_kernel_vaddr(fault_addr)||not_present){
+  if(!user||is_kernel_vaddr(fault_addr)||!not_present||!write){
     exit(-1);
   }
 
-  if (!not_present)
-      goto PGFAULT_VIOLATED_ACCESS;
+  int lock = 0;
+  
+      lock = 1;
+    if (PHYS_BASE - MAX_STACK_SIZE <= fault_addr && fault_addr < PHYS_BASE) {
+        if (lock) {
+            p = palloc_get_page(PAL_USER | PAL_ZERO);
+            lock = 0;
+            pagedir_set_page(thread_current()->pagedir, location, p, 1);
+            location -= PGSIZE;
+            return;
+        }
+    }
+  
 
-  if (!is_user_vaddr(fault_addr))
       exit(-1);
 
-  else if(pg_round_up(fault_addr)>=0xBF800000){
-      void* p = palloc_get_page(PAL_USER | PAL_ZERO);
-      pagedir_set_page(thread_current()->pagedir, location, p, 1);
-      location -= PGSIZE;
-      return;
-  }
 
-
-PGFAULT_VIOLATED_ACCESS:
+//PGFAULT_VIOLATED_ACCESS:
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to
      which fault_addr refers. */
-  printf ("Page fault at %p: %s error %s page in %s context.\n",
+  /*printf ("Page fault at %p: %s error %s page in %s context.\n",
           fault_addr,
           not_present ? "not present" : "rights violation",
           write ? "writing" : "reading",
           user ? "user" : "kernel");
-  kill (f);
+  kill (f);*/
 }
 
