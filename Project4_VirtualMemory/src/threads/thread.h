@@ -126,8 +126,7 @@ struct thread
     struct semaphore wait;
     struct file* fd[128];
 #endif
-   
-
+    struct supplemental_page_table* supt;
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };

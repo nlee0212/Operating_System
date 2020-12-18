@@ -6,6 +6,8 @@
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 #include "threads/palloc.h"
+#include "vm/page.h"
+#include "vm/frame.h"
 
 /* Number of page faults processed. */
 static long long page_fault_cnt;
@@ -155,31 +157,20 @@ page_fault (struct intr_frame *f)
   }
 
   int lock = 0;
-  
-      lock = 1;
-    if (PHYS_BASE - MAX_STACK_SIZE <= fault_addr && fault_addr < PHYS_BASE) {
-        if (lock) {
-            p = palloc_get_page(PAL_USER | PAL_ZERO);
-            lock = 0;
-            pagedir_set_page(thread_current()->pagedir, location, p, 1);
-            location -= PGSIZE;
-            return;
-        }
-    }
-  
+
+  lock = 1;
+  if (PHYS_BASE - 0x80000 <= fault_addr && fault_addr < PHYS_BASE) {
+      if (lock) {
+          p = palloc_get_page(PAL_USER | PAL_ZERO);
+          lock = 0;
+          pagedir_set_page(thread_current()->pagedir, location, p, 1);
+          location -= PGSIZE;
+          if (vm_supt_has_entry(curr->supt, fault_page) == false)
+              vm_supt_install_zeropage(curr->supt, fault_page);
+          return;
+      }
+  }
 
       exit(-1);
-
-
-//PGFAULT_VIOLATED_ACCESS:
-  /* To implement virtual memory, delete the rest of the function
-     body, and replace it with code that brings in the page to
-     which fault_addr refers. */
-  /*printf ("Page fault at %p: %s error %s page in %s context.\n",
-          fault_addr,
-          not_present ? "not present" : "rights violation",
-          write ? "writing" : "reading",
-          user ? "user" : "kernel");
-  kill (f);*/
 }
 
