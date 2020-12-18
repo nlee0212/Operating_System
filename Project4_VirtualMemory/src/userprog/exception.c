@@ -159,14 +159,12 @@ page_fault (struct intr_frame *f)
   int lock = 0;
 
   lock = 1;
-  if (PHYS_BASE - 0x80000 <= fault_addr && fault_addr < PHYS_BASE) {
+  if (PHYS_BASE - 0x80000 <= pg_round_up(fault_addr)) {
       if (lock) {
-          p = palloc_get_page(PAL_USER | PAL_ZERO);
+          p = palloc_get_page(PAL_USER);
           lock = 0;
           pagedir_set_page(thread_current()->pagedir, location, p, 1);
           location -= PGSIZE;
-          if (vm_supt_has_entry(curr->supt, fault_page) == false)
-              vm_supt_install_zeropage(curr->supt, fault_page);
           return;
       }
   }
