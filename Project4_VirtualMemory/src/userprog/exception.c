@@ -128,6 +128,7 @@ page_fault (struct intr_frame *f)
   bool write;        /* True: access was write, false: access was read. */
   bool user;         /* True: access by user, false: access by kernel. */
   void *fault_addr;  /* Fault address. */
+  static void* location = PHYS_BASE - PGSIZE * 2;
 
   /* Obtain faulting address, the virtual address that was
      accessed to cause the fault.  It may point to code or to
@@ -153,9 +154,21 @@ page_fault (struct intr_frame *f)
     exit(-1);
   }
 
+  if (!not_present)
+      goto PGFAULT_VIOLATED_ACCESS;
+
   if (!is_user_vaddr(fault_addr))
       exit(-1);
 
+  else if(pg_round_up(fault_addr)>=0xBF800000){
+      void* p = palloc_get_page(PAL_USER | PAL_ZERO);
+      pagedir_set_page(thread_current()->pagedir, location, p, 1);
+      location -= PGSIZE;
+      return;
+  }
+
+
+PGFAULT_VIOLATED_ACCESS:
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to
      which fault_addr refers. */
