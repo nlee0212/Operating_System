@@ -130,8 +130,10 @@ page_fault (struct intr_frame *f)
   bool write;        /* True: access was write, false: access was read. */
   bool user;         /* True: access by user, false: access by kernel. */
   void *fault_addr;  /* Fault address. */
-  static void* location = PHYS_BASE - PGSIZE * 2;
+  void* fault_page;
   void* p;
+  bool stack_grow = false;
+
   /* Obtain faulting address, the virtual address that was
      accessed to cause the fault.  It may point to code or to
      data.  It is not necessarily the address of the instruction
@@ -152,23 +154,29 @@ page_fault (struct intr_frame *f)
   not_present = (f->error_code & PF_P) == 0;
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
-  if(!user||is_kernel_vaddr(fault_addr)||!not_present||!write){
-    exit(-1);
-  }
 
-  int lock = 0;
+  fault_page = pg_round_down(fault_addr);
 
-  lock = 1;
-  if (PHYS_BASE - 0x80000 <= pg_round_up(fault_addr)) {
-      if (lock) {
-          p = palloc_get_page(PAL_USER);
-          lock = 0;
-          pagedir_set_page(thread_current()->pagedir, location, p, 1);
-          location -= PGSIZE;
-          return;
+  /* check faulted address if valid */
+  if (user && is_user_vaddr(fault_addr)) {
+      if(pg_round_down(f->esp - 4) == fault_page || pg_round_down(f->esp - 32) == fault_page) {
+          while(!pagedir_get_page(thread_current()->pagedir, fault_page)) {
+              p = palloc_get_page(PAL_USER | PAL_ZERO);
+
+              if(p != NULL) {
+                  stack_grow = pagedir_set_page(thread_current()->pagedir, fault_page, p, true);
+
+                  if (stack_grow)
+                      fault_page += PGSIZE;
+                      
+                  else
+                      palloc_free_page(p);
+              }
+          }
       }
   }
 
+  if (!stack_grow)
       exit(-1);
+  
 }
-

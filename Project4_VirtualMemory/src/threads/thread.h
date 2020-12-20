@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "synch.h"
+#include <hash.h>
 
 #ifndef USERPROG
 //For Project 3
@@ -111,6 +112,10 @@ struct thread
     fixpoint recent_cpu;                /* Stores amount of CPU time this
 										   thread has recieved recently. */
     int nice;                           /* Stores niceness of this thread. */
+
+    //Project 4
+    uint8_t* esp;
+    struct hash supPT;
     /* MY CODE END */
     
 #ifdef USERPROG

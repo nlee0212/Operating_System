@@ -50,6 +50,7 @@ syscall_handler (struct intr_frame *f UNUSED)
   //printf("syscall: %d\n",*(uint32_t *)(f->esp));
   //hex_dump(f->esp,f->esp,100,1);
   int* sc_num = f->esp;
+  thread_current()->esp = f->esp;
 
   if (!is_user_vaddr(f->esp))
       exit(-1);
